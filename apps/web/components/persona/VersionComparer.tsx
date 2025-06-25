@@ -148,76 +148,78 @@ export default function VersionComparer({
       </div>
 
       {personaA && personaB && (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Trait</TableHead>
-                <TableHead>Version A</TableHead>
-                <TableHead>Version B</TableHead>
-                <TableHead>Δ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {traits.map((trait) => (
-                <motion.tr
-                  key={trait}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={cn(
-                    "border-b transition-colors",
-                    hasChanged(trait) && "bg-yellow-50"
-                  )}
-                >
-                  <TableCell className="font-medium">{trait}</TableCell>
-                  <TableCell>{formatValue(personaA[trait])}</TableCell>
-                  <TableCell>{formatValue(personaB[trait])}</TableCell>
-                  <TableCell>
-                    {hasChanged(trait) && (
-                      <span className="text-yellow-600">Changed</span>
+        <>
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Trait</TableHead>
+                  <TableHead>Version A</TableHead>
+                  <TableHead>Version B</TableHead>
+                  <TableHead>Δ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {traits.map((trait) => (
+                  <motion.tr
+                    key={trait}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className={cn(
+                      "border-b transition-colors",
+                      hasChanged(trait) && "bg-yellow-50"
                     )}
-                  </TableCell>
-                </motion.tr>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                  >
+                    <TableCell className="font-medium">{trait}</TableCell>
+                    <TableCell>{formatValue(personaA[trait])}</TableCell>
+                    <TableCell>{formatValue(personaB[trait])}</TableCell>
+                    <TableCell>
+                      {hasChanged(trait) && (
+                        <span className="text-yellow-600">Changed</span>
+                      )}
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-8"
-        >
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-4">Trait Comparison</h3>
-            <div className="w-full h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={chartData}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="trait" />
-                  <PolarRadiusAxis angle={30} domain={[0, 1]} />
-                  <Radar
-                    name="Version A"
-                    dataKey="VersionA"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    fillOpacity={0.6}
-                  />
-                  <Radar
-                    name="Version B"
-                    dataKey="VersionB"
-                    stroke="#82ca9d"
-                    fill="#82ca9d"
-                    fillOpacity={0.4}
-                  />
-                  <Legend />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mt-8"
+          >
+            <Card className="p-6">
+              <h3 className="text-xl font-semibold mb-4">Trait Comparison</h3>
+              <div className="w-full h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={chartData}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="trait" />
+                    <PolarRadiusAxis angle={30} domain={[0, 1]} />
+                    <Radar
+                      name="Version A"
+                      dataKey="VersionA"
+                      stroke="#8884d8"
+                      fill="#8884d8"
+                      fillOpacity={0.6}
+                    />
+                    <Radar
+                      name="Version B"
+                      dataKey="VersionB"
+                      stroke="#82ca9d"
+                      fill="#82ca9d"
+                      fillOpacity={0.4}
+                    />
+                    <Legend />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+        </>
       )}
     </div>
   );

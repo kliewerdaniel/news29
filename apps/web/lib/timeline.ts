@@ -1,138 +1,98 @@
-import { readFile, readdir } from 'fs/promises';
-import { join } from 'path';
-import yaml from 'yaml';
+'use server'
 
-interface Debate {
-  createdAt: string;
-  clusterSlug: string;
-  rounds: {
-    personaSlug: string;
-    response: string;
-  }[];
-}
+import { promises as fs } from 'fs'
+import path from 'path'
+import yaml from 'js-yaml'
 
-interface PersonaTrait {
-  version: string;
-  date: string;
-  traits: Record<string, number>;
-}
-
-interface PersonaVersion {
-  name: string;
-  traits: Record<string, number>;
-}
-
-export async function loadTimelineData() {
-  try {
-    // Load debates
-    const debatesDir = join(process.cwd(), 'data/debates');
-    const debateFiles = await readdir(debatesDir);
-    
-    const debates = await Promise.all(
-      debateFiles
-        .filter(file => file.endsWith('.json'))
-        .map(async (file) => {
-          const content = await readFile(join(debatesDir, file), 'utf-8');
-          return JSON.parse(content) as Debate;
-        })
-    );
-
-    // Load persona data
-    const personasDir = join(process.cwd(), 'data/personas');
-    const personaSlugs = await readdir(personasDir);
-    
-    const personaTraits = new Map<string, PersonaTrait[]>();
-    
-    await Promise.all(
-      personaSlugs.map(async (slug) => {
-        if ((await readdir(join(personasDir, slug)))
-            .some(file => file.endsWith('.yaml'))) {
-          const versions = await readdir(join(personasDir, slug));
-          const traitVersions = await Promise.all(
-            versions
-              .filter(v => v.endsWith('.yaml'))
-              .map(async (version) => {
-                const content = await readFile(
-                  join(personasDir, slug, version),
-                  'utf-8'
-                );
-                const data = yaml.parse(content) as PersonaVersion;
-                return {
-                  version: version.replace('.yaml', ''),
-                  date: version.split('_')[0], // Assumes date_version.yaml format
-                  traits: data.traits
-                };
-              })
-          );
-          personaTraits.set(slug, traitVersions);
-        }
-      })
-    );
-
-    // Process timeline events
-    const events = debates.map(debate => {
-      const participants = debate.rounds.map(round => {
-        const personaVersions = personaTraits.get(round.personaSlug) || [];
-        const currentVersion = findClosestVersion(personaVersions, debate.createdAt);
-        const previousVersion = findPreviousVersion(personaVersions, currentVersion);
-        
-        const deltaFromLast: Record<string, number> = {};
-        if (previousVersion && currentVersion) {
-          Object.entries(currentVersion.traits).forEach(([trait, value]) => {
-            const prevValue = previousVersion.traits[trait];
-            if (prevValue !== undefined) {
-              deltaFromLast[trait] = value - prevValue;
-            }
-          });
-        }
-
-        return {
-          slug: round.personaSlug,
-          name: round.personaSlug, // TODO: Get actual name from persona data
-          traits: currentVersion?.traits || {},
-          text: round.response.slice(0, 150) + '...', // Truncate for preview
-          deltaFromLast
-        };
-      });
-
-      return {
-        date: debate.createdAt,
-        cluster: debate.clusterSlug,
-        participants
-      };
-    });
-
-    return events.sort((a, b) => 
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-  } catch (error) {
-    console.error('Error loading timeline data:', error);
-    return [];
-  }
-}
-
-function findClosestVersion(
-  versions: PersonaTrait[],
+export interface TimelineEvent {
   date: string
-): PersonaTrait | undefined {
-  const targetTime = new Date(date).getTime();
-  return versions
-    .filter(v => new Date(v.date).getTime() <= targetTime)
-    .sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    )[0];
+  event: string
+  type: string
+  personaSlug?: string
+  clusterSlug?: string
 }
 
-function findPreviousVersion(
-  versions: PersonaTrait[],
-  current?: PersonaTrait
-): PersonaTrait | undefined {
-  if (!current) return undefined;
-  
-  const sorted = versions.sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  
-  const currentIndex = sorted.findIndex(v => v.version === current.version);
-  return sorted[currentIndex + 1];
+interface PersonaData {
+  name: string;
+  date: string;
+  traits: string[] | Record<string, number>;
 }
+
+interface ClusterData {
+  topic: string;
+  summary: string;
+}
+
+export async function loadTimelineData(): Promise<TimelineEvent[]> {
+  const events: TimelineEvent[] = []
+
+  // Load persona updates
+  const personasDir = path.join(process.cwd(), 'data/personas')
+  const personaSlugs = await fs.readdir(personasDir)
+
+  for (const slug of personaSlugs) {
+    try {
+      const personaDir = path.join(personasDir, slug)
+      const stat = await fs.stat(personaDir)
+      
+      if (!stat.isDirectory()) continue
+
+      const files = await fs.readdir(personaDir)
+      const yamlFiles = files.filter(file => file.endsWith('.yaml'))
+      
+      if (yamlFiles.length === 0) continue
+
+      // Get latest version
+      yamlFiles.sort().reverse()
+      const latestVersion = yamlFiles[0]
+      
+      const content = await fs.readFile(
+        path.join(personaDir, latestVersion),
+        'utf-8'
+      )
+      
+      const data = yaml.load(content) as PersonaData
+      
+      if (data.date) {
+        events.push({
+          date: data.date,
+          event: `${data.name} persona updated`,
+          type: 'persona_update',
+          personaSlug: slug
+        })
+      }
+    } catch (error) {
+      console.error(`Error loading persona ${slug}:`, error)
+    }
+  }
+
+  // Load cluster events
+  const clustersDir = path.join(process.cwd(), 'data/clusters')
+  const clusterFiles = await fs.readdir(clustersDir)
+  const jsonFiles = clusterFiles.filter(file => file.endsWith('.json'))
+
+  for (const file of jsonFiles) {
+    try {
+      const content = await fs.readFile(path.join(clustersDir, file), 'utf-8')
+      const data = JSON.parse(content) as ClusterData
+      const slug = file.replace('.json', '')
+
+      events.push({
+        date: new Date().toISOString(), // Use current date or add a created_at field to clusters
+        event: `New news cluster: ${data.topic}`,
+        type: 'cluster_created',
+        clusterSlug: slug
+      })
+    } catch (error) {
+      console.error(`Error loading cluster ${file}:`, error)
+    }
+  }
+
+  // Sort by date, newest first
+  return events.sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+}
+
+// Alias for backward compatibility
+export const loadTimeline = loadTimelineData
