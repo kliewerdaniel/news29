@@ -1,22 +1,15 @@
 import { MotionDiv } from '@/components/motion-wrapper'
 import { loadClusterBySlug } from '../../actions'
-import { loadPersonas } from './data'
+import { loadPersonas, Persona } from './data' // Import Persona
 import { saveBasicDebateLog } from './actions'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 
-interface DebateResponse {
-  persona: {
-    name: string;
-    traits: string[] | Record<string, number>;
-    slug: string;
-  };
-  text: string;
-  round: number;
-}
+// DebateResponse interface is defined in actions.ts, no need to redefine here if not used.
+// If it's used, it should be imported. For now, I'll assume it's not needed here.
 
 async function generateDebateResponse(
-  persona: { name: string; traits: any },
+  persona: { name: string; traits: Persona['traits'] }, // Use Persona['traits']
   topic: string,
   summary: string
 ): Promise<string> {

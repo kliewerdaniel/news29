@@ -4,12 +4,11 @@ import { useState } from "react";
 import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useTSNE } from "@/hooks/use-tsne";
 import { personas } from "../persona/personas";
-import { commentOnNews } from "@/lib/llm";
 
 export default function ClustersPage() {
   const [texts, setTexts] = useState<string[]>([]);
   const [selectedPersona, setSelectedPersona] = useState(personas[0]);
-  const [personaComment, setPersonaComment] = useState("");
+  const [personaComment, setPersonaComment] = useState(""); // Keep for now, might be used later
   const { points, isLoading } = useTSNE(texts);
 
   const handleRefresh = async () => {
@@ -22,13 +21,9 @@ export default function ClustersPage() {
     ];
     setTexts(newsTexts);
 
-    if (selectedPersona) {
-      const comment = await commentOnNews(
-        selectedPersona,
-        newsTexts.join("\n\n")
-      );
-      setPersonaComment(comment);
-    }
+    // Commentary generation is now handled on the backend.
+    // The frontend will retrieve commentary as part of the broadcast data.
+    setPersonaComment("Commentary will be loaded from backend."); 
   };
 
   return (
@@ -88,7 +83,7 @@ export default function ClustersPage() {
 
         {personaComment && (
           <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-            <h2 className="text-xl font-semibold mb-2">{selectedPersona.name}'s Commentary</h2>
+            <h2 className="text-xl font-semibold mb-2">{selectedPersona.name}&apos;s Commentary</h2>
             <p className="whitespace-pre-wrap">{personaComment}</p>
           </div>
         )}

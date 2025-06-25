@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
-import * as yaml from "js-yaml"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
@@ -15,7 +14,8 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { NewsCluster, Persona } from "@/app/clusters/[slug]/page"
+import { Persona } from "@/app/persona/personas" // Import Persona from central location
+import { Cluster as NewsCluster } from "@/app/clusters/[clusterId]/debate/data" // Import Cluster as NewsCluster
 import { Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 

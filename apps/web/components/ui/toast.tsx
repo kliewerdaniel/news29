@@ -113,9 +113,7 @@ const ToastDescription = React.forwardRef<
     {...props}
   />
 ))
-ToastDescription.displayName = ToastPrimitives.Description.displayName
-
-type ToastPosition = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+ToastDescription.displayName = "ToastDescription";
 
 export {
   type ToastProps,

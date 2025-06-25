@@ -1,25 +1,25 @@
-import { NextRequest } from 'next/server';
+import { NextRequest } from 'next/server'; // Keep NextRequest import
 import fs from 'fs/promises';
 import path from 'path';
-import { mkdir } from 'fs/promises';
 
 export async function PUT(
-  request: NextRequest,
+  request: Request, // Change to generic Request
   { params }: { params: { slug: string; version: string } }
 ) {
+  const { slug, version } = params;
   try {
     const { content } = await request.json();
-    const personaDir = path.join(process.cwd(), 'data', 'personas', params.slug);
+    const personaDir = path.join(process.cwd(), 'data', 'personas', slug);
 
     // Ensure persona directory exists
     try {
       await fs.access(personaDir);
     } catch {
-      await mkdir(personaDir, { recursive: true });
+      await fs.mkdir(personaDir, { recursive: true }); // Use fs.mkdir
     }
 
     // Save new version
-    const filePath = path.join(personaDir, `${params.version}.yaml`);
+    const filePath = path.join(personaDir, `${version}.yaml`);
     await fs.writeFile(filePath, content, 'utf-8');
 
     return new Response(JSON.stringify({ success: true }), {

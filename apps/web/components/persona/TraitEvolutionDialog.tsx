@@ -66,7 +66,7 @@ export function TraitEvolutionDialog({
         duration: 3000
       })
       onClose()
-    } catch (err) {
+    } catch (_err) { // Renamed to _err
       toast({
         title: 'Error',
         description: 'Failed to save evolved traits',

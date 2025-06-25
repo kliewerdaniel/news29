@@ -39,10 +39,14 @@ export async function POST(req: Request) {
       { ok: true, path: `/data/personas/${slug}.yaml` },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error saving persona:", error);
+    let errorMessage = "Failed to save persona";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { ok: false, message: error.message || "Failed to save persona" },
+      { ok: false, message: errorMessage },
       { status: 500 }
     );
   }

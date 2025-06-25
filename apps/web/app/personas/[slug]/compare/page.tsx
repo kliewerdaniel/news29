@@ -10,18 +10,13 @@ type Params = {
   };
 };
 
-type Persona = {
-  name: string;
-  [trait: string]: number | string;
-};
-
 export default async function PersonaComparePage({ params }: Params) {
   const folder = `data/personas/${params.slug}`;
   let files: string[];
   
   try {
     files = await readdir(folder);
-  } catch (error) {
+  } catch (_error) { // Renamed to _error to mark as intentionally unused
     return notFound();
   }
 

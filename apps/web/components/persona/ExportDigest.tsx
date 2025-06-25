@@ -1,9 +1,10 @@
 import { FC } from 'react'
 import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
+import { YearInReviewData } from '@/app/personas/[slug]/year-in-review/actions' // Import YearInReviewData
 
 interface Props {
-  data: any
+  data: YearInReviewData // Use YearInReviewData type
   filename: string
   className?: string
 }

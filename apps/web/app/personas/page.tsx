@@ -1,10 +1,10 @@
 import fs from 'fs/promises';
 import yaml from 'js-yaml';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Removed Card, CardDescription
 import { Button } from "@/components/ui/button";
 import AnimatedCard from "@/components/AnimatedCard";
-import { motion } from 'framer-motion';
+// Removed motion import
 
 type PersonaSummary = {
   name: string;

@@ -3,10 +3,11 @@
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import React from "react";
+import { Variants } from "framer-motion"; // Import Variants
 
 type AnimatedCardProps = {
   children: React.ReactNode;
-  variants: any;
+  variants: Variants; // Use Variants type
   index: number;
 };
 

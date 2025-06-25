@@ -11,7 +11,7 @@ import ReactFlow, {
   Position,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { loadPersonas, computePositions, type PersonaNode } from '@/lib/personas/computeSimilarity';
+import { loadPersonas, computePositions, computePersonaSimilarities } from '@/lib/personas/computeSimilarity'; // Import computePersonaSimilarities
 import Link from 'next/link';
 
 // Custom node component
@@ -49,7 +49,7 @@ export default function SimilarityMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const onNodeClick = useCallback((_: any, node: { id: string }) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: { id: string }) => {
     window.location.href = `/personas/${node.id}/dashboard`;
   }, []);
 
@@ -58,12 +58,15 @@ export default function SimilarityMap() {
       try {
         setLoading(true);
         const personas = await loadPersonas();
-        const positions = await computePositions(personas);
+        const similarities = await computePersonaSimilarities(); // Compute similarities
+        const positions = await computePositions(similarities); // Pass similarities to computePositions
         
         // Convert to ReactFlow nodes
         const nodes = positions.map((node) => ({
-          ...node,
+          id: node.id,
           type: 'persona',
+          position: { x: node.x, y: node.y }, // Map x, y to position object
+          data: { label: node.name, persona: personas.find(p => p.slug === node.id) }, // Pass persona data to node
         }));
         
         setNodes(nodes);

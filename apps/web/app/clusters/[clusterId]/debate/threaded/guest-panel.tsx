@@ -5,13 +5,6 @@ import { Button } from '@/components/ui/button'
 import { GuestJoinPanel, GuestPersona } from '@/components/debate/GuestJoinPanel'
 import { toast } from '@/components/ui/use-toast'
 
-interface Persona {
-  name: string
-  traits: string[] | Record<string, number>
-  slug: string
-  isGuest?: boolean
-}
-
 export function GuestPanel({ 
   personas, 
   currentRound 

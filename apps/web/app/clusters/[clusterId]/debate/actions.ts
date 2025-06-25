@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache'
 
 async function generateResponse(
   cluster: { topic: string; summary: string },
-  persona: { name: string; traits: any },
+  persona: { name: string; traits: Persona['traits'] },
   round: number,
   repliesTo?: { persona: string; text: string }[]
 ): Promise<string> {
@@ -35,7 +35,7 @@ async function generateResponse(
 
 export async function generateDebateResponses(
   cluster: { topic: string; summary: string },
-  personas: { name: string; traits: any }[],
+  personas: { name: string; traits: Persona['traits'] }[],
   round: number,
   previousResponses?: { persona: string; text: string }[]
 ) {

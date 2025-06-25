@@ -1,9 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { promises as fs } from "fs";
-import path from "path";
-import yaml from "js-yaml";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { mergeTraits } from "@/lib/personas/mergeTraits";
-import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { TraitProgressBar } from "@/components/persona/TraitProgressBar";
 

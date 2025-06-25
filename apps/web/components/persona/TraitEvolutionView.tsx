@@ -15,11 +15,18 @@ type TraitEvolutionViewProps = {
   evolvedTraits: Record<string, number>
 }
 
+interface ChartDataItem {
+  trait: string;
+  original: number;
+  evolved: number;
+  difference: number;
+}
+
 export function TraitEvolutionView({
   originalTraits,
   evolvedTraits
 }: TraitEvolutionViewProps) {
-  const [chartData, setChartData] = useState<any[]>([])
+  const [chartData, setChartData] = useState<ChartDataItem[]>([])
 
   useEffect(() => {
     // Transform traits data for radar chart

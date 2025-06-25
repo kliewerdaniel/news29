@@ -9,6 +9,10 @@ from typing import List, Dict, Optional
 import importlib.util
 import queue
 import io
+import os
+
+from ollama import Ollama # Import Ollama
+from store import store_segment # Import store_segment
 
 from src.core.config import CONFIG
 from src.core.models import Article, BroadcastSegment
@@ -19,7 +23,7 @@ from src.feeds.fetcher import FeedFetcher
 from src.nlp.sentiment import SentimentAnalyzer
 from src.nlp.clustering import StreamClusterer
 from src.utils import load_persona # Import load_persona
-from src.prompts import create_summary_prompt, create_segment_script_prompt, create_transition_phrase_prompt # Import prompt functions
+from src.prompts import create_summary_prompt, create_segment_script_prompt, create_transition_phrase_prompt, create_commentary_prompt # Import prompt functions
 
 edge_tts_available = importlib.util.find_spec("edge_tts") is not None
 if edge_tts_available:
@@ -41,6 +45,7 @@ class NewsGenerator:
         self.sentiment_analyzer = SentimentAnalyzer()
         self.article_clusterer = StreamClusterer()
         self.persona = load_persona(persona_file) # Load persona here using the provided file
+        self.ollama_client = Ollama(host=os.getenv("OLLAMA_HOST", "http://ollama:11434")) # Initialize Ollama client
     async def process_articles_smart(self, articles: List[Article]) -> List[Article]:
         """Streamlined processing with circuit breaker"""
         if not articles:
@@ -317,6 +322,34 @@ class NewsGenerator:
             self.logger.error(f"Unexpected error during script generation LLM call: {e}")
         return "Failed to generate news segment."
 
+    async def generate_llm_commentary(self, segment: BroadcastSegment) -> str:
+        """Generate LLM commentary for a given news segment."""
+        context = "\n".join([f"{a.title}: {a.summary}" for a in segment.articles])
+        prompt = create_commentary_prompt(segment.topic, context, self.persona)
+
+        try:
+            res = await self.ollama_client.chat(
+                model=CONFIG["models"]["commentary_model"],
+                messages=[{'role': 'user', 'content': prompt}],
+                options={'temperature': 0.7}
+            )
+            return res['message']['content'].strip()
+        except Exception as e:
+            self.logger.error(f"Failed to generate LLM commentary: {e}")
+            return "No commentary available."
+
+    async def generate_embedding(self, text: str) -> List[float]:
+        """Generate embedding for a given text."""
+        try:
+            res = await self.ollama_client.embeddings(
+                model=CONFIG["models"]["embedding_model"],
+                prompt=text
+            )
+            return res['embedding']
+        except Exception as e:
+            self.logger.error(f"Failed to generate embedding: {e}")
+            return []
+
     async def generate_transition_phrase(self, previous_topic: str, current_topic: str) -> str:
         """Generates a natural transition phrase between two news topics."""
         prompt = create_transition_phrase_prompt(previous_topic, current_topic, self.persona)
@@ -409,6 +442,20 @@ class NewsGenerator:
 
                         segment_script = await self.generate_segment_script(segment)
                         full_script = self.clean_script_for_tts(f"{intro_phrase} {segment_script}")
+
+                        # Generate LLM commentary and embedding
+                        commentary = await self.generate_llm_commentary(segment)
+                        embedding = await self.generate_embedding(segment.topic + " " + segment.content)
+
+                        # Store segment in ChromaDB
+                        store_segment(
+                            persona_id=self.persona.slug,
+                            title=segment.topic,
+                            summary=segment.content, # Using segment.content as summary for storage
+                            comment=commentary,
+                            vector=embedding
+                        )
+                        self.logger.info(f"Stored segment '{segment.topic}' in ChromaDB.")
 
                         await self.generate_and_queue_audio(full_script)
 

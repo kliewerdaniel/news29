@@ -19,7 +19,7 @@ interface PersonaMeta {
   traits: string[] | Record<string, number>;
 }
 
-interface YearInReviewData {
+export interface YearInReviewData { // Export the interface
   articles: ArticleMeta[];
   versions: PersonaMeta[];
   yearStart: string;
@@ -44,7 +44,7 @@ export async function loadYearInReviewData(personaSlug: string): Promise<YearInR
       const content = await fs.readFile(path.join(articlesDir, file), 'utf-8');
       const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
       const frontmatter = frontmatterMatch 
-        ? yaml.load(frontmatterMatch[1]) as any
+        ? yaml.load(frontmatterMatch[1]) as { topic?: string; date?: string; style?: string; tone?: string; summary?: string; }
         : {};
 
       const article: ArticleMeta = {
@@ -53,7 +53,7 @@ export async function loadYearInReviewData(personaSlug: string): Promise<YearInR
         date: frontmatter.date || 'Unknown Date',
         style: frontmatter.style || 'Unknown Style',
         tone: frontmatter.tone || 'Unknown Tone',
-        summary: content.split('\n').slice(1).join('\n').slice(0, 200) + '...'
+        summary: frontmatter.summary || content.split('\n').slice(1).join('\n').slice(0, 200) + '...'
       };
 
       // Only include articles from the past year
@@ -75,11 +75,11 @@ export async function loadYearInReviewData(personaSlug: string): Promise<YearInR
     
     for (const file of yamlFiles) {
       const content = await fs.readFile(path.join(personaDir, file), 'utf-8');
-      const data = yaml.load(content) as any;
+      const data = yaml.load(content) as PersonaMeta;
       const version: PersonaMeta = {
         name: data.name || 'Unknown',
         date: data.date || 'Unknown',
-        traits: data.traits || []
+        traits: data.traits || {} // Initialize as empty object for Record<string, number>
       };
 
       // Only include versions from the past year

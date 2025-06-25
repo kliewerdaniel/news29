@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import yaml from "js-yaml";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -69,10 +68,14 @@ export default function CreatePersonaPage() {
           description: `Persona saved to ${data.path}`,
         });
         form.reset(); // Reset form after successful save
-      } catch (error: any) {
+      } catch (error: unknown) {
+        let errorMessage = "Failed to save persona";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         toast({
           title: "Error saving persona",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       }

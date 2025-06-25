@@ -21,12 +21,12 @@ export async function loadPersonaVersions(slug: string): Promise<PersonaVersion[
     
     for (const file of yamlFiles) {
       const content = await fs.readFile(path.join(personaDir, file), 'utf-8');
-      const data = yaml.load(content) as any;
+      const data = yaml.load(content) as PersonaVersion;
       versions.push({
         version: file.replace('.yaml', ''),
         name: data.name || 'Unknown',
         date: data.date || 'Unknown',
-        traits: data.traits || []
+        traits: data.traits || {} // Initialize as empty object for Record<string, number>
       });
     }
 

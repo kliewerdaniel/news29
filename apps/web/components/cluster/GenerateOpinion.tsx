@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
-import * as yaml from "js-yaml"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
@@ -12,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { NewsCluster, Persona } from "@/app/clusters/[slug]/page"
+import { Persona } from "@/app/persona/personas" // Import Persona from central location
+import { Cluster as NewsCluster } from "@/app/clusters/[clusterId]/debate/data" // Import Cluster as NewsCluster
 import { Loader2 } from "lucide-react"
 
 interface GenerateOpinionProps {

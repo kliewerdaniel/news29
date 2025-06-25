@@ -3,12 +3,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import yaml from 'js-yaml'
-
-interface Persona {
-  name: string;
-  traits: string[] | Record<string, number>;
-  slug: string;
-}
+import { Persona } from '../../app/persona/personas'; // Import Persona
 
 export interface SimilarityResult {
   source: string;
@@ -60,11 +55,24 @@ export async function computePersonaSimilarities(): Promise<SimilarityResult[]> 
         'utf-8'
       );
       
-      const data = yaml.load(content) as any;
+      const data = yaml.load(content) as { 
+        name: string; 
+        traits: Record<string, number>; 
+        tone: string; 
+        promptStyle: string; 
+        description: string; 
+        interests?: string[]; 
+      }; // Use a temporary type for loaded data
+
       personas.push({
+        id: slug, // Use slug as id
         name: data.name,
         traits: data.traits,
-        slug
+        tone: data.tone,
+        promptStyle: data.promptStyle,
+        description: data.description,
+        interests: data.interests || [],
+        slug: slug, // Add slug property
       });
     }
 

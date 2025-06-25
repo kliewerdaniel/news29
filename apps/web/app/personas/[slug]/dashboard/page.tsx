@@ -2,7 +2,6 @@ import { MotionDiv } from '@/components/motion-wrapper';
 import { loadPersonaVersions } from './actions';
 import VersionComparer from '@/components/persona/VersionComparer';
 import Link from 'next/link';
-import yaml from 'js-yaml';
 
 interface PersonaForComparison {
   name: string;
@@ -91,7 +90,7 @@ export default async function DashboardPage({
                   className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
                 >
                   <h3 className="text-lg font-semibold">Year in Review</h3>
-                  <p className="text-gray-600">See this persona's evolution over the past year</p>
+                  <p className="text-gray-600">See this persona&apos;s evolution over the past year</p>
                 </Link>
               </div>
             </section>
@@ -142,7 +141,7 @@ export default async function DashboardPage({
                 className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
                 <h3 className="text-lg font-semibold">Year in Review</h3>
-                <p className="text-gray-600">See this persona's evolution over the past year</p>
+                <p className="text-gray-600">See this persona&apos;s evolution over the past year</p>
               </Link>
             </div>
           </section>

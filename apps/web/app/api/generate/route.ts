@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yaml from "js-yaml";
 import * as fs from "fs";
+import { Persona } from "../../persona/personas"; // Import Persona interface
 
 // Auto-versions persona YAML on opinion generation
 export const runtime = "nodejs";
@@ -19,7 +20,7 @@ type Cluster = {
 };
 
 type GenerateRequest = {
-  persona: Record<string, any>;
+  persona: Persona;
   cluster: Cluster;
 };
 

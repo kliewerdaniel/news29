@@ -15,7 +15,6 @@ interface PersonaData {
   name: string;
   traits: Record<string, number>;
   interests: string[];
-  [key: string]: any;
 }
 
 interface RefinePersonaPanelProps {
@@ -87,10 +86,14 @@ export function RefinePersonaPanel({ personaData, slug, onSave }: RefinePersonaP
       });
 
       onSave?.();
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to save new persona version';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: 'Error',
-        description: 'Failed to save new persona version',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

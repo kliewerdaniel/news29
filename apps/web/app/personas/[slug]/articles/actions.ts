@@ -34,7 +34,7 @@ export async function loadArticleMetas(personaSlug: string): Promise<ArticleMeta
         const content = await fs.readFile(path.join(articlesDir, file), 'utf-8');
         const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
         const frontmatter = frontmatterMatch 
-          ? yaml.load(frontmatterMatch[1]) as any
+          ? yaml.load(frontmatterMatch[1]) as { topic?: string; date?: string; style?: string; tone?: string; persona?: string; }
           : {};
 
         return {

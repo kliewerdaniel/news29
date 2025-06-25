@@ -82,7 +82,7 @@ export async function loadPersonas(): Promise<Persona[]> {
   }
 }
 
-export function computePositions(similarities: SimilarityResult[]): Position[] {
+export async function computePositions(similarities: SimilarityResult[]): Promise<Position[]> {
   // Create a map of all unique persona IDs
   const personaIds = new Set<string>();
   similarities.forEach(s => {

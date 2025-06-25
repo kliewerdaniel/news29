@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import matter from "gray-matter";
+import { Persona } from "../../persona/personas"; // Import Persona interface
 
 type CritiqueRequest = {
-  persona: Record<string, any>;
+  persona: Persona;
   content: string;
   topic?: string;
 };
@@ -24,7 +25,7 @@ function stripMdx(content: string): string {
     .trim();
 }
 
-function constructPrompt(persona: Record<string, any>, content: string, topic?: string): string {
+function constructPrompt(persona: Persona, content: string, topic?: string): string {
   return `You are an editorial AI. Your task is to critique the following article based on:
 - Writing clarity
 - Alignment with the author persona's traits

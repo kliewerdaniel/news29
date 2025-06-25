@@ -1,9 +1,10 @@
 "use client";
 
 import { RefinePersonaPanel } from '@/components/persona/RefinePersonaPanel';
+import { Persona } from '../../../../persona/personas'; // Import Persona interface
 
 interface ClientArticleProps {
-  personaData: any;
+  personaData: Persona;
   slug: string;
 }
 

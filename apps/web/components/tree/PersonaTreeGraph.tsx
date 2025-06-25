@@ -12,8 +12,6 @@ import ReactFlow, {
   addEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { motion, AnimatePresence } from 'framer-motion';
-import { parse } from 'yaml';
 import { Button } from '@/components/ui/button';
 import {
   Select,

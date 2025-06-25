@@ -48,7 +48,7 @@ export async function loadPersonas(): Promise<Persona[]> {
         'utf-8'
       );
       
-      const data = yaml.load(content) as any;
+      const data = yaml.load(content) as Persona;
       personas.push({
         ...data,
         slug
