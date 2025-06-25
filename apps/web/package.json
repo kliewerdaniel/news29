@@ -11,6 +11,8 @@
     "generate:rss": "ts-node scripts/generate-rss.ts"
   },
   "dependencies": {
+    "@auth/core": "^0.34.2",
+    "@auth/prisma-adapter": "^2.10.0",
     "@hookform/resolvers": "^5.1.1",
     "@mdx-js/loader": "^3.1.0",
     "@mdx-js/mdx": "^3.1.0",
@@ -47,11 +49,13 @@
     "js-yaml": "^4.1.0",
     "lucide-react": "^0.523.0",
     "next": "15.3.4",
+    "next-auth": "^4.24.11",
     "next-mdx-remote": "^5.0.0",
     "ollama": "^0.5.16",
     "react": "^19.0.0",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.0.0",
+    "react-force-graph-2d": "^1.27.1",
     "react-hook-form": "^7.58.1",
     "react-vertical-timeline-component": "^3.5.3",
     "reactflow": "^11.11.4",

@@ -2,6 +2,7 @@
 
 import { Inter as FontSans } from "next/font/google"
 import "./globals.css";
+import { SessionProvider } from "next-auth/react";
 
 import { cn } from "@/lib/utils"
 
@@ -9,7 +10,6 @@ const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
 })
-
 
 export default function RootLayout({
   children,
@@ -25,7 +25,7 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   )
