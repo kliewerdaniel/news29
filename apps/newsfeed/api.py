@@ -2,7 +2,8 @@ from fastapi import FastAPI, BackgroundTasks, Query, HTTPException
 from fastapi.responses import FileResponse, PlainTextResponse
 from src.news_generator import NewsGenerator  # adjust import to real path
 from store import search_segments, client
-from typing import Optional
+from typing import Optional, Dict
+from pathlib import Path
 from apscheduler.schedulers.background import BackgroundScheduler
 import json
 import pathlib
@@ -118,13 +119,39 @@ def persona_timeline(persona_id: str, n: int = 200):
 async def semantic_search(
     query: str,
     persona: Optional[str] = Query(None, description="Filter results by persona ID"),
+    keyword: Optional[str] = Query(None, description="Filter results by keyword"),
     limit: int = Query(5, ge=1, le=20, description="Number of results to return")
 ):
     """
     Search for news segments semantically similar to the query.
     Optionally filter by persona and limit the number of results.
     """
-    results = search_segments(query, persona=persona, limit=limit)
+    # Apply filters
+    filters = {}
+    if persona:
+        filters["persona"] = persona
+    
+    # Get semantic search results
+    results = search_segments(query, filters=filters, limit=limit)
+    
+    # Apply keyword filter if provided
+    if keyword:
+        keyword = keyword.lower()
+        filtered_results = {
+            "ids": [[]], 
+            "documents": [[]], 
+            "metadatas": [[]], 
+            "distances": [[]]
+        }
+        
+        for i, doc in enumerate(results["documents"][0]):
+            if keyword in doc.lower():
+                filtered_results["ids"][0].append(results["ids"][0][i])
+                filtered_results["documents"][0].append(doc)
+                filtered_results["metadatas"][0].append(results["metadatas"][0][i])
+                filtered_results["distances"][0].append(results["distances"][0][i])
+        
+        results = filtered_results
     return {
         "query": query,
         "results": [
@@ -184,3 +211,50 @@ def global_heatmap(n_bins: int = 20):
         result[f"row_{i}"] = density[i].tolist()
     
     return result
+
+@app.post("/persona/create")
+def create_persona(p: Dict):
+    """
+    Accepts: {id, name, tone, promptStyle, description}
+    Stores to a persistent personas.json file.
+    """
+    path = Path("data/personas.json")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    personas = json.loads(path.read_text()) if path.exists() else []
+    personas.append(p)
+    path.write_text(json.dumps(personas, indent=2))
+    return {"status": "ok"}
+
+@app.get("/personas")
+def load_personas():
+    """Load all available personas from the JSON file"""
+    path = Path("data/personas.json")
+    if not path.exists():
+        return []
+    return json.loads(path.read_text())
+
+@app.get("/compare")
+def compare_persona_comments(broadcast_id: str = "latest"):
+    """Get persona comments comparison for a broadcast"""
+    if broadcast_id == "latest":
+        # Get the most recent broadcast
+        broadcasts = list(BCAST_DIR.glob("*.json"))
+        if not broadcasts:
+            return []
+        broadcast_file = max(broadcasts, key=lambda x: x.stat().st_mtime)
+        broadcast = json.loads(broadcast_file.read_text())
+    else:
+        # Load specific broadcast
+        broadcast = generator.load_broadcast(broadcast_id)
+    
+    # Extract and format segments with persona comments
+    segments = []
+    for segment in broadcast.get("segments", []):
+        segments.append({
+            "title": segment["title"],
+            "summary": segment["summary"],
+            "timestamp": segment.get("timestamp", ""),
+            "persona_comments": segment.get("persona_comments", {})
+        })
+    
+    return segments

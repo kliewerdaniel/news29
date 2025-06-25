@@ -18,6 +18,7 @@ interface SearchResult {
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<string>("");
+  const [keyword, setKeyword] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,7 +29,8 @@ export default function SearchPage() {
     try {
       const params = new URLSearchParams({
         query: query.trim(),
-        ...(selectedPersona && { persona: selectedPersona })
+        ...(selectedPersona && { persona: selectedPersona }),
+        ...(keyword && { keyword: keyword.trim() })
       });
 
       const response = await fetch(`/api/search?${params}`);
@@ -59,6 +61,14 @@ export default function SearchPage() {
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="Search for themes or topics..."
             className="flex-1 p-2 border rounded-lg"
+          />
+          <input
+            type="text"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Filter by keyword..."
+            className="w-48 p-2 border rounded-lg"
           />
           <select
             value={selectedPersona}
