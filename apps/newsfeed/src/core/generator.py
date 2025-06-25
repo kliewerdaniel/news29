@@ -30,22 +30,30 @@ if edge_tts_available:
     import edge_tts
 
 class NewsGenerator:
-    def __init__(self, audio_queue: queue.Queue, feeds_file: str = "feeds.yaml", topic: Optional[str] = None, guidance: Optional[str] = None, persona_file: str = "persona.yaml"):
+    def __init__(self, audio_queue: queue.Queue, feeds_file: str = "feeds.yaml", topic: Optional[str] = None, guidance: Optional[str] = None):
         self.audio_queue = audio_queue
         self.feeds_file = feeds_file
         self.circuit_breaker = CircuitBreaker()
         self.performance_monitor = PerformanceMonitor()
         self.topic = topic
         self.guidance = guidance
-        self.relevancy_threshold = CONFIG["relevancy"]["threshold"] # Use threshold from config
+        self.relevancy_threshold = CONFIG["relevancy"]["threshold"]
         self.logger = logging.getLogger(__name__)
 
         self.db = NewsDatabase()
         self.feed_fetcher = FeedFetcher(feeds_file=self.feeds_file)
         self.sentiment_analyzer = SentimentAnalyzer()
         self.article_clusterer = StreamClusterer()
-        self.persona = load_persona(persona_file) # Load persona here using the provided file
-        self.ollama_client = Ollama(host=os.getenv("OLLAMA_HOST", "http://ollama:11434")) # Initialize Ollama client
+        
+        # Load all personas from the personas directory
+        self.personas = {}
+        personas_dir = Path("personas")
+        for persona_file in personas_dir.glob("*.yaml"):
+            persona = load_persona(str(persona_file))
+            self.personas[persona_file.stem] = persona
+        self.default_persona = self.personas.get("objective", load_persona("persona.yaml"))
+        
+        self.ollama_client = Ollama(host=os.getenv("OLLAMA_HOST", "http://ollama:11434"))
     async def process_articles_smart(self, articles: List[Article]) -> List[Article]:
         """Streamlined processing with circuit breaker"""
         if not articles:
@@ -322,21 +330,25 @@ class NewsGenerator:
             self.logger.error(f"Unexpected error during script generation LLM call: {e}")
         return "Failed to generate news segment."
 
-    async def generate_llm_commentary(self, segment: BroadcastSegment) -> str:
-        """Generate LLM commentary for a given news segment."""
+    async def generate_llm_commentary(self, segment: BroadcastSegment) -> Dict[str, str]:
+        """Generate LLM commentary for a given news segment from multiple personas."""
         context = "\n".join([f"{a.title}: {a.summary}" for a in segment.articles])
-        prompt = create_commentary_prompt(segment.topic, context, self.persona)
+        persona_comments = {}
 
-        try:
-            res = await self.ollama_client.chat(
-                model=CONFIG["models"]["commentary_model"],
-                messages=[{'role': 'user', 'content': prompt}],
-                options={'temperature': 0.7}
-            )
-            return res['message']['content'].strip()
-        except Exception as e:
-            self.logger.error(f"Failed to generate LLM commentary: {e}")
-            return "No commentary available."
+        for persona_id, persona in self.personas.items():
+            try:
+                prompt = create_commentary_prompt(segment.topic, context, persona)
+                res = await self.ollama_client.chat(
+                    model=CONFIG["models"]["commentary_model"],
+                    messages=[{'role': 'user', 'content': prompt}],
+                    options={'temperature': 0.7}
+                )
+                persona_comments[persona_id] = res['message']['content'].strip()
+            except Exception as e:
+                self.logger.error(f"Failed to generate LLM commentary for persona {persona_id}: {e}")
+                persona_comments[persona_id] = "No commentary available."
+
+        return persona_comments
 
     async def generate_embedding(self, text: str) -> List[float]:
         """Generate embedding for a given text."""
@@ -443,18 +455,19 @@ class NewsGenerator:
                         segment_script = await self.generate_segment_script(segment)
                         full_script = self.clean_script_for_tts(f"{intro_phrase} {segment_script}")
 
-                        # Generate LLM commentary and embedding
-                        commentary = await self.generate_llm_commentary(segment)
+                        # Generate multi-persona commentary and embedding
+                        persona_comments = await self.generate_llm_commentary(segment)
                         embedding = await self.generate_embedding(segment.topic + " " + segment.content)
 
-                        # Store segment in ChromaDB
-                        store_segment(
-                            persona_id=self.persona.slug,
-                            title=segment.topic,
-                            summary=segment.content, # Using segment.content as summary for storage
-                            comment=commentary,
-                            vector=embedding
-                        )
+                        # Store segment in ChromaDB for each persona
+                        for persona_id, comment in persona_comments.items():
+                            store_segment(
+                                persona_id=persona_id,
+                                title=segment.topic,
+                                summary=segment.content,
+                                comment=comment,
+                                vector=embedding
+                            )
                         self.logger.info(f"Stored segment '{segment.topic}' in ChromaDB.")
 
                         await self.generate_and_queue_audio(full_script)

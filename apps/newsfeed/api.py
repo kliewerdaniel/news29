@@ -3,12 +3,28 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from src.news_generator import NewsGenerator  # adjust import to real path
 from store import search_segments, client
 from typing import Optional
+from apscheduler.schedulers.background import BackgroundScheduler
 import json
 import pathlib
 import datetime
 import io
+import asyncio
+import numpy as np
+from sklearn.manifold import TSNE
+from scipy.stats import gaussian_kde
 
 app = FastAPI(title="NewsFeed API")
+
+# Initialize scheduler
+scheduler = BackgroundScheduler()
+
+def scheduled_run():
+    """Run the news generator on a schedule"""
+    loop = asyncio.get_event_loop()
+    loop.create_task(generator.run_once())
+
+# Schedule to run every hour
+scheduler.add_job(scheduled_run, "interval", hours=1)
 
 # Directory for storing broadcast files
 BCAST_DIR = pathlib.Path("data/broadcasts")
@@ -21,6 +37,9 @@ def save_broadcast(broadcast):
     fname.write_text(json.dumps(broadcast, indent=2))
 
 generator = NewsGenerator()
+
+# Start the scheduler
+scheduler.start()
 
 @app.post("/refresh")
 async def refresh(feeds: list[str] | None = None):
@@ -123,3 +142,45 @@ async def semantic_search(
             )
         ]
     }
+
+@app.get("/clusters/global")
+def global_heatmap(n_bins: int = 20):
+    """Get global cluster data for heatmap visualization"""
+    # Get all embeddings from ChromaDB
+    coll = client.get_collection("news_segments")
+    docs = coll.query(
+        n_results=1000,
+        include=["embeddings"]
+    )
+    
+    if not docs["embeddings"]:
+        return {}
+
+    # Convert embeddings to numpy array
+    embeddings = np.array(docs["embeddings"])
+    
+    # Project to 2D using TSNE
+    tsne = TSNE(n_components=2, random_state=42)
+    coords = tsne.fit_transform(embeddings)
+    
+    # Calculate density using Gaussian KDE
+    kernel = gaussian_kde(coords.T)
+    
+    # Create grid of points
+    x_min, x_max = coords[:, 0].min(), coords[:, 0].max()
+    y_min, y_max = coords[:, 1].min(), coords[:, 1].max()
+    
+    x = np.linspace(x_min, x_max, n_bins)
+    y = np.linspace(y_min, y_max, n_bins)
+    X, Y = np.meshgrid(x, y)
+    
+    # Calculate density at each grid point
+    positions = np.vstack([X.ravel(), Y.ravel()])
+    density = kernel(positions).reshape(n_bins, n_bins)
+    
+    # Convert to row-based format for heatmap
+    result = {}
+    for i in range(n_bins):
+        result[f"row_{i}"] = density[i].tolist()
+    
+    return result
