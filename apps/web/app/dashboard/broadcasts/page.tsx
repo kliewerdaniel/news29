@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+const API_URL = process.env.NEXT_PUBLIC_NEWS_API;
+
 interface Broadcast {
   id: string;
   timestamp: string;
@@ -46,6 +48,26 @@ export default function BroadcastListPage() {
             <li key={b.id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
               <div className="font-semibold">{new Date(b.timestamp).toLocaleString()}</div>
               <div className="text-gray-700">{b.title || "Untitled"}</div>
+              <div className="mt-2 flex gap-4">
+                <Link 
+                  href={`/dashboard/broadcasts/${b.id}`}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Replay
+                </Link>
+                <a
+                  href={`${API_URL}/broadcast/${b.id}/export?format=json`}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Export JSON
+                </a>
+                <a
+                  href={`${API_URL}/broadcast/${b.id}/export?format=md`}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Export MD
+                </a>
+              </div>
             </li>
           ))}
         </ul>
