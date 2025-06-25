@@ -1,0 +1,5 @@
+{
+  "name": "news-suite",
+  "private": true,
+  "workspaces": ["apps/web"]
+}

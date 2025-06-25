@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  web:
+    build: ./apps/web
+    command: npm run dev
+    volumes:
+      - ./apps/web:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - NEWS_API=http://backend:8000
+  backend:
+    build:
+      context: ./apps/newsfeed
+      dockerfile: Dockerfile
+    command: uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./apps/newsfeed:/app
+    ports:
+      - "8000:8000"

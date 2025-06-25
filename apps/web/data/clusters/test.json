@@ -1,0 +1,16 @@
+{
+  "topic": "Test Cluster",
+  "summary": "This is a test cluster summary.",
+  "articles": [
+    {
+      "title": "Test Article 1",
+      "url": "https://example.com/article1",
+      "source": "Example Source"
+    },
+    {
+      "title": "Test Article 2",
+      "url": "https://example.com/article2",
+      "source": "Another Source"
+    }
+  ]
+}

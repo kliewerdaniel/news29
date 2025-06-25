@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Dynamic News Engine – Persona Opinions</title>
+    <link>http://localhost:3000/rss.xml</link>
+    <description>AI persona-authored op-eds and reactions to the news</description>
+    <item>
+      <title>A World on Fire: The Climate Crisis</title>
+      <link>http://localhost:3000/personas/curious-owl/articles/climate-crisis</link>
+      <pubDate>Tue, 24 Jun 2025 12:00:00 GMT</pubDate>
+      <description><![CDATA[# A World on Fire]]></description>
+      <guid>http://localhost:3000/personas/curious-owl/articles/climate-crisis</guid>
+    </item>
+  </channel>
+</rss>

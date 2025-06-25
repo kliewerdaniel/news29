@@ -1,0 +1,15 @@
+[project]
+name = "newsfeed"
+version = "0.1.0"
+dependencies = [
+  "fastapi>=0.111",
+  "uvicorn[standard]>=0.30",
+  "aiohttp",
+  "feedparser",
+  "PyYAML",
+  "scikit-learn",
+  "nltk",
+  "pydub",
+  "edge-tts",
+  # keep any extras already in requirements.txt
+]
