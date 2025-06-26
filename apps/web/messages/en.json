@@ -1,0 +1,24 @@
+{
+  "Common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "powered_by": "Powered by Persona News AI"
+  },
+  "Broadcast": {
+    "not_found": "Broadcast not found",
+    "not_available": "This broadcast may be private or no longer available",
+    "persona_perspectives": "Persona Perspectives"
+  },
+  "Persona": {
+    "not_found": "Persona not found",
+    "not_available": "This persona may be private or no longer available",
+    "created_at": "Created {date}",
+    "source": "Source"
+  },
+  "Navigation": {
+    "language": "Language",
+    "select_language": "Select language",
+    "share": "Share",
+    "copy_link": "Copy link"
+  }
+}
